@@ -1,0 +1,641 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>LHVWB:SMF_intergration_MOD</id>
+	<version>1.41</version>
+	<file name="$boarddir/index.php">
+		<operation>
+			<search position="replace"><![CDATA[
+		// Fall through to the board index then...
+		require_once($sourcedir . '/BoardIndex.php');
+		return 'BoardIndex';
+]]></search>
+			<add><![CDATA[
+		//	Fall back to the error action, but wait...
+		//	Is there an error action? Is it valid?
+		if(isset($modSettings['SiteIntegrationMod_site_error_page'])
+		&& isset($actionArray[$modSettings['SiteIntegrationMod_site_error_page']])
+		&& !($modSettings['SiteIntegrationMod_site_error_page'] == '')
+		&&	allowedTo('SiteIntegration:'.$modSettings['SiteIntegrationMod_site_error_page'])
+		&& !($load_home))
+		{
+			require_once($sourcedir . '/' . $actionArray[$modSettings['SiteIntegrationMod_site_error_page']][0]);
+			$context['current_action'] = $modSettings['SiteIntegrationMod_site_error_page'];
+			return $actionArray[$modSettings['SiteIntegrationMod_site_error_page']][1];
+		}
+		//	If not then try to load the default site action.
+		//	Is there a default action? Is it valid?
+		elseif(isset($modSettings['SiteIntegrationMod_site_home_action'])
+		&& isset($actionArray[$modSettings['SiteIntegrationMod_site_home_action']])
+		&& !($modSettings['SiteIntegrationMod_site_home_action'] == '')
+		&&	allowedTo('SiteIntegration:'.$modSettings['SiteIntegrationMod_site_home_action']))
+		{
+			require_once($sourcedir . '/' . $actionArray[$modSettings['SiteIntegrationMod_site_home_action']][0]);
+			$context['current_action'] = $modSettings['SiteIntegrationMod_site_home_action'];
+			return $actionArray[$modSettings['SiteIntegrationMod_site_home_action']][1];
+		}
+		// No? Fall through to the board index then...
+		else
+		{
+			require_once($sourcedir . '/BoardIndex.php');
+			return 'BoardIndex';
+		}
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		'xmlhttp' => array('Xml.php', 'XMLhttpMain'),
+]]></search>
+			<add><![CDATA[		// Place the forums home - SiteIntegrationMod.
+		'forum' => array('BoardIndex.php', 'BoardIndex'),
+]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[	// Is the forum in maintenance mode? (doesn't apply to administrators.)
+	if (!empty($maintenance) && !allowedTo('admin_forum'))
+]]></search>
+			<add><![CDATA[	//	We will need to tell the code later on, whether or not it is acessing the home page or not. - SiteIntegrationMod.
+	$load_home = false;
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+		// Action and board are both empty... BoardIndex!
+		if (empty($board) && empty($topic))
+		{
+			require_once($sourcedir . '/BoardIndex.php');
+			return 'BoardIndex';
+		}
+]]></search>
+			<add><![CDATA[
+		// Action and board are both empty... BoardIndex!
+		if (empty($board) && empty($topic))
+		{
+			// Allow the system to continue...
+			// This must happen because there may be a custom default/home action, in the as yet undefined array.
+			$load_home = true;
+		}
+]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+	// Get the function and file to include - if it's not there, do the board index.
+	if (!isset($_REQUEST['action']) || !isset($actionArray[$_REQUEST['action']]))
+]]></search>
+			<add><![CDATA[
+	global $boarddir, $context;
+	
+	$context['siteintegration_actions'] = array();
+	
+	//	First check for the actual folder includes setting, to avoid errors.
+	if(isset($modSettings['SiteIntegrationMod_includes_folders']))
+	{
+		//	Get the list of folders for including files, all separated by commas.
+		$folders = explode(',' , $modSettings['SiteIntegrationMod_includes_folders']);
+		
+		//	Get the array of file extensions to search for, put '.php' in the array as a default.
+		$file_extensions = array('.php');
+		if(isset($modSettings['SiteIntegrationMod_include_folder_extensions']))
+			$file_extensions = array_merge($file_extensions, explode(',', $modSettings['SiteIntegrationMod_include_folder_extensions']));
+		
+		//	Cut out any invalid file extensions, they must have full stops!!! ;D
+		foreach($file_extensions as $key => $file_extension)
+		{
+			$file_extension = trim($file_extension);
+			
+			if((substr($file_extension, 0, 1) != '.')
+			|| !(strlen($file_extension) > 2))
+				unset($file_extensions[$key]);
+			//	Otherwise trim the file extension.
+			else
+				$file_extensions[$key] = $file_extension;
+		}
+			
+		//	Go through each folder.
+		foreach($folders as $folder)
+		{
+			//	Get rid of any nasty whitespace at the end or beginning of the folder name.
+			$folder = trim($folder);
+			
+			//	Also get rid of any nasty forward slashes.
+			$folder = trim($folder, '/');
+			
+			//	Make sure that the folder exists.
+			if(file_exists($boarddir."/".$folder."/")
+			&& !($folder == '')
+			//	Also make sure that no important folders are being passed.
+			&& !(in_array(strtolower($folder), array('attachments', 'cache', 'packages', 'smileys', 'sources', 'themes'))))
+			{
+				//	Add an action for each of the files in the folder.
+				foreach(scandir($boarddir."/".$folder."/", 1) as $file)
+				{ 
+					//	Assume that there is no valid extension.
+					$extension = '';
+					
+					//	Check to see if the file has a valid extension.
+					foreach($file_extensions as $file_extension)
+						if((substr($file, -strlen($file_extension), strlen($file_extension)) == $file_extension)
+						&& ($extension == ''))
+							$extension = $file_extension;
+					
+					//	Make sure that the file has a valid extension and that the redundant index file is not passed.
+					if(!($extension == '')
+					&& !($file == "index.php")) 
+					{
+						//	Remove the type extension from the file name.
+						$action = substr($file, 0, strlen($file)-strlen($extension));
+						
+						//	Check for an action with the same name.
+						// 	This stops dodgy unwashed admin from overriding SMF actions, or defining their own actions multiple times.
+						if(!isset($actionArray[$action]))
+						{
+							//	Store the action into the SMF action array.
+							$actionArray[$action] = array('LoadFile.php', 'LoadFile');
+							//	Add the action into an array for possible later use.
+							$context['siteintegration_actions'][$action] = array($folder."/".$file, $file_extension);
+						}
+					}
+				}
+				$context['includes_folders'][] = $folder;
+			}
+		}
+	}
+]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Who.php">
+		<operation>
+			<search position="after"><![CDATA[
+	if (!is_array($urls))
+		$url_list = array(array($urls, $user_info['id']));
+	else
+		$url_list = $urls;
+]]></search>
+			<add><![CDATA[
+	global $boarddir;
+	
+	//	We need to include the Site-Wide Integration Files, so that we can get the language strings from them. - Site Integration Mod.
+	if(isset($modSettings['SiteIntegrationMod_general_language_files'])
+	&& isset($modSettings['SiteIntegrationMod_language_includes_folders']))
+	{
+		$general_language_includes = array();
+		
+		foreach(explode(',' , $modSettings['SiteIntegrationMod_general_language_files']) as $language)
+		{
+			$general_language_includes[] = trim(strtolower($language)).".".$user_info['language'].".php";
+		}	
+
+		//	Get the list of folders for including language files, all separated by commas.
+		$language_folders = explode(',' , $modSettings['SiteIntegrationMod_language_includes_folders']);
+		
+		//	Cycle through the folders.
+		foreach($language_folders as $folder)
+		{
+			//	Get rid of any nasty whitespace and forward slashes at the end or beginning of the folder name.
+			$folder = strtolower(trim($folder, "/ "));
+			
+			//	Make sure that the folder exists.
+			if(file_exists($boarddir."/".$folder."/")
+			&& !($folder == '')
+			//	Also make sure that no important folders are being passed.
+			&& !(in_array(strtolower($folder), array('attachments', 'cache', 'packages', 'smileys', 'sources', 'themes'))))
+			{
+				//	Store each current language file from the folder, the template can load them!
+				foreach(scandir($boarddir."/".$folder."/", 1) as $file)
+				{ 
+					//	Make sure the file is a (current_language).php file before we store it.
+					//	Check that the file is a general language include.
+					if((substr($file, -5-strlen($user_info['language'])) == ".".$user_info['language'].".php")
+					&& in_array(strtolower($file), $general_language_includes))
+						require_once($boarddir."/".$folder."/".$file);
+				}
+			}
+		}
+	}
+	
+	//	Add the included actions/files for the Site Integration Mod.
+	foreach($context['siteintegration_actions'] as $action => $data)
+	{
+		//	Do we even need to show this action in the whosonline list?
+		if(isset($modSettings['SiteIntegration_who:'.$action])
+		&& ($modSettings['SiteIntegration_who:'.$action])
+		//	Does this action have its own title? Also make sure that there is no custom who text.
+		&& !in_array(array('whoallow_'.$action, 'whoall_'.$action, 'whoadmin_'.$action), $txt)
+		&& isset($modSettings['SiteIntegration_title:'.$action])
+		&& ($modSettings['SiteIntegration_title:'.$action] != ''))
+		{
+			//	Do we have a special $txt var for this title?
+			if(isset($modSettings['SiteIntegrationMod_language_prefix'])
+			&& ($modSettings['SiteIntegrationMod_language_prefix'] != '')
+			&& isset($txt[$modSettings['SiteIntegrationMod_language_prefix'].$modSettings['SiteIntegration_title:'.$action]]))
+				$txt['whoallow_'.$action] = $txt[$modSettings['SiteIntegrationMod_language_prefix'].$modSettings['SiteIntegration_title:'.$action]];
+			//	Otherwise, just show the stinking title.
+			else
+				$txt['whoallow_'.$action] = $modSettings['SiteIntegration_title:'.$action];	
+				
+			//	Add the permisions for this action.
+			$allowedActions[$action] = array('SiteIntegration:'.$action);
+		}
+	}
+]]></add>
+		</operation>
+	</file>
+	<file name="$themedir/Admin.template.php">
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+
+// Basically just puts together two types of sub templates for the SiteIntegration Settings section.
+function template_SiteIntegrationSettings()
+{
+	template_show_settings();
+	echo('<br/><br/>');
+	template_show_list();
+}
+]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/ManageSettings.php">
+		<operation>
+			<search position="before"><![CDATA[
+		// Mod authors, once again, if you have a whole section to add do it AFTER this line, and keep a comma at the end.
+]]></search>
+			<add><![CDATA[
+		'siteintegration' => 'SiteIntegrationSettings',
+]]></add>
+		</operation>
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+
+//	Handle Site Integration Settings.
+function SiteIntegrationSettings()
+{
+	global $txt, $scripturl, $context, $sourcedir;
+	
+	// Managing the settings for a particular action/file include?
+	if (isset($_GET['integration_action'])
+	&& isset($context['siteintegration_actions'][$_GET['integration_action']]))
+	{
+		$config_vars = array(
+			'<u>'.$txt['SiteIntegrationMod_manage_include'].": \"".$_GET['integration_action']."\"</u>",
+			array('text', 'SiteIntegration_title:'.$_GET['integration_action'] , 'label' => $txt['SiteIntegrationMod_include_title'], 'help' => 'SiteIntegrationMod_include_title'),
+			array('permissions', 'SiteIntegration:'.$_GET['integration_action'] , 'label' => $txt['SiteIntegrationMod_include_permissions'], 'help' => 'SiteIntegrationMod_include_permissions'),
+			array('check', 'SiteIntegration_who:'.$_GET['integration_action'] , 'label' => $txt['SiteIntegrationMod_show_whosonline'], 'help' => 'SiteIntegrationMod_show_whosonline'),
+			'<a href="' . $scripturl . '?action=admin;area=modsettings;sa=siteintegration;">' . $txt['SiteIntegrationMod_back'] . '</a>',
+		);
+				
+		if(strpos($_GET['integration_action'], chr(32)) || strpos($_GET['integration_action'], chr(46)) || strpos($_GET['integration_action'], chr(91)))
+			$config_vars[] = $txt['SiteIntegrationMod_character_warning'];
+		
+		//	Set-up the title for this page and the url for saving data.
+		$context['post_url'] = $scripturl . '?action=admin;area=modsettings;save;sa=siteintegration;integration_action='.$_GET['integration_action'].';';
+		$context['settings_title'] = $txt['SiteIntegrationMod_tab_heading']." - ".$txt['SiteIntegrationMod_manage_include'].": \"".$_GET['integration_action']."\"";
+	}
+	//	Wipe any unnessesary include management settings from the table/cache?
+	elseif(isset($_GET['clean_include_cache']))
+	{
+		clean_SiteIntegration_include_cache();
+		redirectexit('action=admin;area=modsettings;sa=siteintegration');
+	}
+	//	Otherwise just show the General Site Integration Settings.
+	else
+	{
+		//	Setup the General Settings area.
+		$config_vars = array(
+			'<u>'.$txt['SiteIntegrationMod_generalsettings_heading'].':</u>',
+			array('text', 'SiteIntegrationMod_includes_folders'),
+			array('text', 'SiteIntegrationMod_include_folder_extensions'),
+			array('text', 'SiteIntegrationMod_site_error_page'),
+			array('text', 'SiteIntegrationMod_site_home_action'),
+			array('text', 'SiteIntegrationMod_failed_permissions_action'),
+			array('check', 'SiteIntegrationMod_badpermissions_guestlogin'),
+			array('text', 'SiteIntegrationMod_language_includes_folders'),
+			array('text', 'SiteIntegrationMod_general_language_files'),
+			array('text', 'SiteIntegrationMod_language_prefix'),
+			'<a href="'.$scripturl . '?action=admin;area=modsettings;sa=siteintegration;clean_include_cache;">'
+			.$txt['SiteIntegrationMod_clean_cache'].'</a> - '.$txt['SiteIntegrationMod_clean_cache_explanation'],
+		);
+		
+		//	Setup the list display area.
+		$listActions = array(
+			'id' => 'smiley_list',
+			'items_per_page' => 10,
+			'default_sort_col' => 'include',
+			'title' => '<u>'.$txt['SiteIntegrationMod_manage_include'].':</u>',
+			'base_href' => $scripturl . '?action=admin;area=modsettings;sa=siteintegration',
+			'no_items_label' => $txt['SiteIntegrationMod_no_includes'],
+			'get_items' => array(
+				'function' => 'get_SiteIntegration_IncludeSettings',
+			),
+			'get_count' => array(
+				'function' => create_function('', '
+							return '.(isset($context['siteintegration_actions']) ? count($context['siteintegration_actions']) : 0) .';'),
+			),
+			'columns' => array(
+				'include' => array(
+					'header' => array(
+						'value' => $txt['SiteIntegrationMod_include'],
+					),
+					'data' => array(
+						'function' =>  create_function('$rowData', 'return $rowData[\'include\'];'),
+					),
+					'sort' => array(
+						'default' => 'action',
+						'reverse' => 'raction',
+					),
+				),
+				'location' => array(
+					'header' => array(
+						'value' => $txt['SiteIntegrationMod_location'],
+					),
+					'data' => array(
+						'function' =>  create_function('$rowData', 'return $rowData[\'location\'];'),
+					),
+					'sort' => array(
+						'default' => 'location',
+						'reverse' => 'rlocation',
+					),
+				),
+				'page_title' => array(
+					'header' => array(
+						'value' => $txt['SiteIntegrationMod_page_title'],
+					),
+					'data' => array(
+						'function' =>  create_function('$rowData', 'return $rowData[\'page_title\'];'),
+					),
+				),
+				'permissions' => array(
+					'header' => array(
+						'value' => $txt['SiteIntegrationMod_permissions'],
+					),
+					'data' => array(
+						'function' =>  create_function('$rowData', 'return $rowData[\'permissions\'];'),
+					),
+				),
+				'manage' => array(
+					'header' => array(
+						'value' => $txt['SiteIntegrationMod_manange_header'],
+					),
+					'data' => array(
+						'function' =>  create_function('$rowData', 'return $rowData[\'manage\'];'),
+					),
+				),
+			),
+		);
+		
+		//	Load the smiley_list list type, every one does... :)
+		$context['default_list'] = 'smiley_list';
+		
+		//	Open the right file and then call the list creation function.
+		require_once($sourcedir . '/Subs-List.php');
+		createList($listActions);
+		
+		//	Cut out any setting of this template stuff if we are doing a search.
+		if(!($_REQUEST['area'] == 'search'))
+		{
+			//	Set-up the title for this page and the url for saving data, then load the correct subtemplate.
+			$context['post_url'] = $scripturl . '?action=admin;area=modsettings;save;sa=siteintegration;';
+			$context['settings_title'] = $txt['SiteIntegrationMod_tab_heading'];
+			$context['sub_template'] = 'SiteIntegrationSettings';
+		}
+	}
+
+	// Saving?
+	if (isset($_GET['save']))
+	{
+		//	Check that we aren't passing some really annouying post variables.
+		if(!isset($_GET['integration_action']) || (!(strpos($_GET['integration_action'], chr(32)) || strpos($_GET['integration_action'], chr(46)) || strpos($_GET['integration_action'], chr(91)))))
+		{
+			//	Check that this user can edit this area.
+			checkSession();
+			//	Save any normal settings.
+			saveDBSettings($config_vars);
+		}
+		//	Finally take use away!
+		redirectexit('action=admin;area=modsettings;sa=siteintegration');
+	}
+
+	//	Prepare the settings to be stored in the database and shown by the settings page.
+	prepareDBSettingContext($config_vars);
+}
+
+//	Get all of the Include Settings from the database.
+function get_SiteIntegration_IncludeSettings($start, $items_per_page, $sort)
+{
+	global $context, $modSettings, $txt, $scripturl, $sourcedir, $mbname;
+	
+	$include_array = array();
+	
+	//	If its a normal sorting thing then leave it.
+	if(!strstr($sort, 'r'))
+		$array_sort = $sort;
+	//	Otherwise strip the r and continue the process.
+	else
+		$array_sort = substr($sort, 1);
+	
+	$include_permissions = get_SiteIntegration_Permissions();
+	
+	$membergroups = get_SiteIntegration_MemberGroups();
+	//	Finally create an array to pass to the SMF generic list function.
+	foreach($context['siteintegration_actions'] as $action => $data)
+	{
+		$permissions_string = "Admin";
+		
+		$location = $data['0'];
+		
+		//	If we have permissions for this include then fetch them.
+		if(isset($include_permissions['SiteIntegration:'.$action]))
+			foreach($include_permissions['SiteIntegration:'.$action] as $id_group)
+				$permissions_string .= ', '.$membergroups[$id_group];
+		
+		//	Create a temp array of the data which is needed for this row.
+		$temp_array = array(
+			'include' => '<a href="' . $scripturl . '?action=' . $action . '">' . $action . '</a>',
+			'action' => $action,
+			'location' => $data[0],
+			'permissions' => $permissions_string,
+			'page_title' => isset($modSettings['SiteIntegration_title:'.$action]) ? $modSettings['SiteIntegration_title:'.$action] : $mbname.' (Default Title)',
+			'manage' => '<a href="' . $scripturl . '?action=admin;area=modsettings;sa=siteintegration;integration_action=' . $action . ';">'
+						.$txt['SiteIntegrationMod_manage'].'</a></center>',
+		);
+		
+		//	Finally store the information based on the correct index.
+		$include_array[$temp_array[$array_sort]] = $temp_array;
+	}
+
+	//	Sort the array descending?
+	if(!strstr($sort, 'r'))
+		sort($include_array);
+	//	Otherwise sort the array Ascending.
+	else
+		rsort($include_array);
+	
+	//	Create a new array, this time with only the rows that should be on the current page.
+	$result_array = array();
+	for($i=$start; $i<$start+$items_per_page; $i++)
+	{
+		//	No information to store? Okay, well don't bother creating empty rows then...
+		if(empty($include_array[$i]))
+			continue;
+		
+		//	Store the correct data into the array which will be returned.
+		$result_array[] = $include_array[$i];
+	}
+	
+	//	Return the rows for the current page.
+	return $result_array;
+}
+
+//	Get all of the Include Permission Settings from the database.
+function get_SiteIntegration_Permissions()
+{
+	global $smcFunc, $db_prefix;
+			
+	// Get the permissions from the table, make sure we only get them for the Menu System.
+	$request = $smcFunc['db_query']('', '
+		SELECT permission, id_group
+		FROM {db_prefix}permissions
+		WHERE permission 
+		LIKE \'SiteIntegration:%\''
+	);
+	
+	$include_permissions = array();
+	
+	//	Store the data in a way that is easy to use. Permission => array (id_groups)
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+		$include_permissions[$row['permission']][] = $row['id_group'];
+	
+	//	Don't forget to free the request!!!
+	$smcFunc['db_free_result']($request);
+	
+	return $include_permissions;
+}
+
+//	This function is used to clean the permissions and settings tables by deleting any data which no longer has an included action.
+//	This data could be there because the include was renamed, moved or etc.
+function clean_SiteIntegration_include_cache()
+{
+	global $context, $modSettings, $smcFunc, $db_prefix;
+			
+	//	Go through all of the settings.
+	foreach($modSettings as $setting => $nul)
+	{
+		//	Check that it is a Site Integration setting.
+		if((substr($setting, 0, strlen("SiteIntegration_title:")) == "SiteIntegration_title:")
+		//	Also Make sure that it isn't a valid actions settings.
+		&& !isset($context['siteintegration_actions'][substr($setting, strlen("SiteIntegration_title:"))]))
+		{
+			//	Perform the deletion of the old setting.
+			$smcFunc['db_query']('',"DELETE FROM {$db_prefix}settings WHERE variable = '$setting' LIMIT 1");	
+		}
+	}
+	
+	//	Go through all of the Permissions.
+	foreach(get_SiteIntegration_Permissions() as $permission => $nul)
+	{
+		//	Double check that it is a Site Integration Permission.
+		if((substr($permission, 0, strlen("SiteIntegration:")) == "SiteIntegration:")
+		//	Also Make sure that it isn't a valid actions permissions.
+		&& !isset($context['siteintegration_actions'][substr($permission, strlen("SiteIntegration:"))]))
+		{
+			//	Perform the deletion of the old permissions setting.
+			//	This query has not been limited on purpose, so that any of the permissions with this name will be deleted.
+			$request = $smcFunc['db_query']('',"DELETE FROM {$db_prefix}permissions WHERE permission = '$permission'");			
+		}
+	}
+}
+
+//	This function simply gets the membergroups and returns them in a useful way.
+function get_SiteIntegration_MemberGroups()
+{
+	global $smcFunc, $modSettings;
+	
+	$membergroups = array();
+	
+	//	Fix up a few errors that occur, by adding guests and members to the list.
+	$membergroups['-1'] = 'Guests';
+	$membergroups['0'] = 'Regular Members';
+	
+	// Get the permissions from the table, make sure we only get them for the Menu System.
+	$request = $smcFunc['db_query']('', '
+		SELECT ID_GROUP, group_name
+		FROM {db_prefix}membergroups
+		' . (($modSettings['permission_enable_postgroups']) ? '' : 'WHERE min_posts = -1')
+	);
+	
+	//	Store the data in a way that is easy to use. Permission => array (id_groups)
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+		$membergroups[$row['ID_GROUP']] = $row['group_name'];
+	
+	//	Don't forget to free the request!!!
+	$smcFunc['db_free_result']($request);
+	
+	return $membergroups;
+}
+
+]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Admin.php">
+		<operation>
+			<search position="before"><![CDATA[
+						// Mod Authors for a "ADD AFTER" on this line. Ensure you end your change with a comma. For example:
+						// 'shout' => array($txt['shout']),
+						// Note the comma!! The setting with automatically appear with the first mod to be added.
+]]></search>
+			<add><![CDATA[						'siteintegration' => array($txt['SiteIntegrationMod_tab_heading']),
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		// Mod authors if you want to be "real freaking good" then add any setting pages for your mod BELOW this line!
+]]></search>
+			<add><![CDATA[		//	Site Integration Settings search stuff, LHVWB === "real freaking good" && "1337".
+		array('SiteIntegrationSettings', 'area=modsettings;sa=siteintegration'),
+]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Subs-Compat.php">
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+//	Added the scandir() function for the Site Integration Mod, by LHVWB. Doesn't support the final context variable.
+if (!function_exists('scandir'))
+{
+	function scandir($directory, $sorting_order = false)
+	{
+		$folder_contents = array();
+		
+		//	Get the folder resource. 
+		$dh = opendir($directory);
+		
+		//	Get all of the files and store them into the array to be returned.
+		while (false !== ($filename = readdir($dh)))
+		{
+			$folder_contents[] = $filename;
+		}
+		
+		//	Close the resource.
+		closedir($dh);
+		
+		//	Sort the data alphabetically in descending order
+		if($sorting_order)
+		{
+			rsort($folder_contents);
+		}
+		// Default - Sort the data alphabetically in asescending order		
+		else
+		{
+			sort($folder_contents);
+		}
+		
+		//	Finally return the array, just like with scandir().
+		return $folder_contents;
+	}
+}
+
+]]></add>
+		</operation>
+	</file>
+</modification>

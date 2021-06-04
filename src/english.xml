@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>LHVWB:SMF_intergration_MOD</id>
+	<version>1.41</version>
+	<file name="$themedir/languages/Modifications.english.php">
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+//	**Start Site Integration Mod Text**
+//	Site Integration Settings Text.
+$txt['SiteIntegrationMod_includes_folders'] = 'File/Action Include Folders';
+$txt['SiteIntegrationMod_language_includes_folders'] = 'Language File Include Folders';
+$txt['SiteIntegrationMod_general_language_files'] = 'Site-Wide Language Integration Files';
+$txt['SiteIntegrationMod_failed_permissions_action'] = 'Redirect Action for Invalid Action/File Include Permissions';
+$txt['SiteIntegrationMod_badpermissions_guestlogin'] = 'Show Login for Guest Invalid Action/File Requests?';
+$txt['SiteIntegrationMod_include_permissions'] = 'Permissions';
+$txt['SiteIntegrationMod_include_title'] = 'Title';
+$txt['SiteIntegrationMod_site_error_page'] = 'Invalid Action Error Action';
+$txt['SiteIntegrationMod_site_home_action'] = 'Forum Default/Home Action';
+$txt['SiteIntegrationMod_include_folder_extensions'] = 'Extra "File/Action Include" File Extensions';
+$txt['SiteIntegrationMod_language_prefix'] = 'Language String Prefix';
+$txt['SiteIntegrationMod_show_whosonline'] = 'Show in Whosonline list?';
+
+//	Site Integration Settings Misc text that doesn't belong to a direct setting.
+//	General Settings area.
+$txt['SiteIntegrationMod_tab_heading'] = 'Site Integration';
+$txt['SiteIntegrationMod_generalsettings_heading'] = 'General Site Integration Settings';
+$txt['SiteIntegrationMod_clean_cache'] = 'Clean the File/Action Include Management Cache';
+$txt['SiteIntegrationMod_clean_cache_explanation'] = 'This will clear any old include management settings and permissions which could be leftover when you move or rename files.';
+$txt['SiteIntegrationMod_back'] = 'Back To General Settings';
+$txt['SiteIntegrationMod_character_warning'] = 'Warning: The name of this file/action include contains one of the following characters (space), (.) and ([), this means that the above settings will not work.';
+
+//	List Settings area.
+$txt['SiteIntegrationMod_manage_include'] = 'Manage Included Files/Actions';
+$txt['SiteIntegrationMod_include'] = 'File/Action Include';
+$txt['SiteIntegrationMod_location'] = 'File Location';
+$txt['SiteIntegrationMod_page_title'] = 'Page Title';
+$txt['SiteIntegrationMod_permissions'] = 'Permissions (Member Groups with access)';
+$txt['SiteIntegrationMod_manange_header'] = 'Manage File/Action Include';
+$txt['SiteIntegrationMod_manage'] = 'Manage';
+$txt['SiteIntegrationMod_no_includes'] = 'You currently have no included actions/files.';
+//	**End Site Integration Mod Text**
+]]></add>
+		</operation>
+	</file>
+	<file name="$themedir/languages/Help.english.php">
+		<operation>
+			<search position="before"><![CDATA[
+$helptxt = array();
+]]></search>
+			<add><![CDATA[
+//	**Start Site Integration Mod HelpText**
+//	Help for the Site Integration Mod Settings.
+$helptxt['SiteIntegrationMod_includes_folders'] = 'This settings allows you to add multiple folders, by separating them with commas. All of the .php files in those folders will be turned into actions by SMF.<br/><br/>Please Note that the folder names are relative to the SMF home directory. (eg. \'file_includes\' will load actions from \'(SMF Home Directory)/file_includes/\')<br/><br/>Also Note that it doesn\'t matter if you use forward slashes at the beginning or end of the folder names, they are however nessesary in the middle if you are trying to load a subfolder (eg. \'file_includes/files\').';
+$helptxt['SiteIntegrationMod_language_includes_folders'] = 'If your site only uses one language then ignore this option. <br /><br />This settting allows you to make a list of folders, separated by commas. When you view one of the actions/files loaded by this Mod using the previous setting, SMF will search through these folders for any language include files, in a way similar to the inbuilt SMF language system.<br /><br />First it will search for a specific language file for the current action (ie. "(current action).(User\'s current SMF language).php"). For example, when the action is \'demo\' and the langauge is \'english-utf8\' it will look for \'demo.english-utf8.php\'.<br /><br /> It will also search for any general site-wide language include files in these folders (refer to the next setting). <br /><br /> Within the actual language files themselves, you can declare string variables that you can then use in your action to make your actions have multiple language translations.';
+$helptxt['SiteIntegrationMod_general_language_files'] = 'If your site only uses one language then ignore this option. <br /><br />This setting allows you to add a series of general site-wide language includes, separated by commas. When the system searches through your language include folders (refer to above setting), it will always include language files which have this prefix, no matter which action you are viewing.<br /><br /> For example, when the language is french-utf8 and the action is demo, but you have set a general language include called \'sitelanguage\', it will look for and include \'demo.french-utf8.php\' and \'sitelanguage.french-utf8.php\'. <br /><br /> Setting variables and using them works exactly the same for these site-wide language includes, as for the language includes discussed in the previous settings help pop-up.';
+$helptxt['SiteIntegrationMod_failed_permissions_action'] = 'If anyone without the proper permissions tries to load any of your included actions/files, they will be redirected to this action. By default if this action is invalid or not set, then they will be redirected straight to the forums home.<br /><br />To set up permissions for your includes please click the manage link next to the relevant include below.';
+$helptxt['SiteIntegrationMod_badpermissions_guestlogin'] = 'Checking this setting will mean that guests will be asked to login before they try to view the actions that guests do not have permissions for. Otherwise they will be redirected to the normal permissions error page.';
+$helptxt['SiteIntegrationMod_include_permissions'] = 'This setting allows you to restrict who can view this included action/file. By default only Admin can view included files/actions.';
+$helptxt['SiteIntegrationMod_include_title'] = 'This setting allows you to create a custom title for the current action/file include. This title will be shown as the page title when this action is view. By default the boards name will be shown as the title.';
+$helptxt['SiteIntegrationMod_site_error_page'] = 'This setting allows you to change the action/page which will be shown when you try to view an action which doesn\'t exsist within the SMF system. If this setting is empty then the "Forum Default/Home Action" will be shown for all invalid actions. Please remember that this MUST be an action, it can however be any action from the entire SMF forum system.';
+$helptxt['SiteIntegrationMod_site_home_action'] = 'This setting allows you to change the default action/page which is shown when you view "index.php", without any specified action. If the "Invalid Action Error Action" field is empty or invalid then this action will also be shown if the action is invalid. Please note that if you use this setting, you will still be able to access the default forums index, from the \'forum\' action at "index.php?action=forums". Please also remember that this MUST be an action, it can however be any action from the entire SMF forum system.';
+$helptxt['SiteIntegrationMod_include_folder_extensions'] = 'This setting allows you to specify a list of file extensions separated by commas \',\'. These extensions will be used when searching for files/actions in the "File/Action Include Folders", by default \'.php\' will always be used, this setting gives you the option of adding extra extensions to search for. Please remember to use a dot \'.\' at the beginning of each extension, otherwise they will be ignored by the system. Also remember, that if you add extensions such as .tar.gz, the archieves will be still included, but the displayed text will be gibberish.';
+$helptxt['SiteIntegrationMod_language_prefix'] = 'This setting allows you to specify a string prefix which will be used to try to find a language string for each included action/file title. When an include\'s title is needed, SMF will try to find a variable in the format $txt[(language_prefix).(title)], if none is found for the current language then the title itself will be used. This is only useful if you have multiple languages in your forum.<br /><br /> Please not that if you set the value of this setting to nothing, then the mod will not bother searching for ANY text language strings. Also note that when searching, the mod will look through your "Site-Wide Language Integration Files" for the correct language string.';
+$helptxt['SiteIntegrationMod_show_whosonline'] = 'This setting allows you to chose whether or not this action will be shown in the whosonline list, if checked the "action" in the list for a user viewing an included file/action will be the same as the titles text, otherwise it will be shown as generic message like \'Unknown Action\'. Remember that only users with permissions to actually view the page will be able to see other users viewing it, otherwise they will get the generic message as well.';
+//	**End Site Integration Mod HelpText**
+]]></add>
+		</operation>
+	</file>
+	<file name="$themedir/languages/Modifications.english-utf8.php" error="skip">
+		<operation error="skip">
+			<search position="end" />
+			<add><![CDATA[
+//	**Start Site Integration Mod Text**
+//	Site Integration Settings Text.
+$txt['SiteIntegrationMod_includes_folders'] = 'File/Action Include Folders';
+$txt['SiteIntegrationMod_language_includes_folders'] = 'Language File Include Folders';
+$txt['SiteIntegrationMod_general_language_files'] = 'Site-Wide Language Integration Files';
+$txt['SiteIntegrationMod_failed_permissions_action'] = 'Redirect Action for Invalid Action/File Include Permissions';
+$txt['SiteIntegrationMod_badpermissions_guestlogin'] = 'Show Login for Guest Invalid Action/File Requests?';
+$txt['SiteIntegrationMod_include_permissions'] = 'Permissions';
+$txt['SiteIntegrationMod_include_title'] = 'Title';
+$txt['SiteIntegrationMod_site_error_page'] = 'Invalid Action Error Action';
+$txt['SiteIntegrationMod_site_home_action'] = 'Forum Default/Home Action';
+$txt['SiteIntegrationMod_include_folder_extensions'] = 'Extra "File/Action Include" File Extensions';
+$txt['SiteIntegrationMod_language_prefix'] = 'Language String Prefix';
+$txt['SiteIntegrationMod_show_whosonline'] = 'Show in Whosonline list?';
+
+//	Site Integration Settings Misc text that doesn't belong to a direct setting.
+//	General Settings area.
+$txt['SiteIntegrationMod_tab_heading'] = 'Site Integration';
+$txt['SiteIntegrationMod_generalsettings_heading'] = 'General Site Integration Settings';
+$txt['SiteIntegrationMod_clean_cache'] = 'Clean the File/Action Include Management Cache';
+$txt['SiteIntegrationMod_clean_cache_explanation'] = 'This will clear any old include management settings and permissions which could be leftover when you move or rename files.';
+$txt['SiteIntegrationMod_back'] = 'Back To General Settings';
+$txt['SiteIntegrationMod_character_warning'] = 'Warning: The name of this file/action include contains one of the following characters (space), (.) and ([), this means that the above settings will not work.';
+
+//	List Settings area.
+$txt['SiteIntegrationMod_manage_include'] = 'Manage Included Files/Actions';
+$txt['SiteIntegrationMod_include'] = 'File/Action Include';
+$txt['SiteIntegrationMod_location'] = 'File Location';
+$txt['SiteIntegrationMod_page_title'] = 'Page Title';
+$txt['SiteIntegrationMod_permissions'] = 'Permissions (Member Groups with access)';
+$txt['SiteIntegrationMod_manange_header'] = 'Manage File/Action Include';
+$txt['SiteIntegrationMod_manage'] = 'Manage';
+$txt['SiteIntegrationMod_no_includes'] = 'You currently have no included actions/files.';
+//	**End Site Integration Mod Text**
+]]></add>
+		</operation>
+	</file>	
+	<file name="$themedir/languages/Help.english-utf8.php" error="skip">
+		<operation error="skip">
+			<search position="before"><![CDATA[
+$helptxt = array();
+]]></search>
+			<add><![CDATA[
+//	**Start Site Integration Mod HelpText**
+//	Help for the Site Integration Mod Settings.
+$helptxt['SiteIntegrationMod_includes_folders'] = 'This settings allows you to add multiple folders, by separating them with commas. All of the .php files in those folders will be turned into actions by SMF.<br/><br/>Please Note that the folder names are relative to the SMF home directory. (eg. \'file_includes\' will load actions from \'(SMF Home Directory)/file_includes/\')<br/><br/>Also Note that it doesn\'t matter if you use forward slashes at the beginning or end of the folder names, they are however nessesary in the middle if you are trying to load a subfolder (eg. \'file_includes/files\').';
+$helptxt['SiteIntegrationMod_language_includes_folders'] = 'If your site only uses one language then ignore this option. <br /><br />This settting allows you to make a list of folders, separated by commas. When you view one of the actions/files loaded by this Mod using the previous setting, SMF will search through these folders for any language include files, in a way similar to the inbuilt SMF language system.<br /><br />First it will search for a specific language file for the current action (ie. "(current action).(User\'s current SMF language).php"). For example, when the action is \'demo\' and the langauge is \'english-utf8\' it will look for \'demo.english-utf8.php\'.<br /><br /> It will also search for any general site-wide language include files in these folders (refer to the next setting). <br /><br /> Within the actual language files themselves, you can declare string variables that you can then use in your action to make your actions have multiple language translations.';
+$helptxt['SiteIntegrationMod_general_language_files'] = 'If your site only uses one language then ignore this option. <br /><br />This setting allows you to add a series of general site-wide language includes, separated by commas. When the system searches through your language include folders (refer to above setting), it will always include language files which have this prefix, no matter which action you are viewing.<br /><br /> For example, when the language is french-utf8 and the action is demo, but you have set a general language include called \'sitelanguage\', it will look for and include \'demo.french-utf8.php\' and \'sitelanguage.french-utf8.php\'. <br /><br /> Setting variables and using them works exactly the same for these site-wide language includes, as for the language includes discussed in the previous settings help pop-up.';
+$helptxt['SiteIntegrationMod_failed_permissions_action'] = 'If anyone without the proper permissions tries to load any of your included actions/files, they will be redirected to this action. By default if this action is invalid or not set, then they will be redirected straight to the forums home.<br /><br />To set up permissions for your includes please click the manage link next to the relevant include below.';
+$helptxt['SiteIntegrationMod_badpermissions_guestlogin'] = 'Checking this setting will mean that guests will be asked to login before they try to view the actions that guests do not have permissions for. Otherwise they will be redirected to the normal permissions error page.';
+$helptxt['SiteIntegrationMod_include_permissions'] = 'This setting allows you to restrict who can view this included action/file. By default only Admin can view included files/actions.';
+$helptxt['SiteIntegrationMod_include_title'] = 'This setting allows you to create a custom title for the current action/file include. This title will be shown as the page title when this action is view. By default the boards name will be shown as the title.';
+$helptxt['SiteIntegrationMod_site_error_page'] = 'This setting allows you to change the action/page which will be shown when you try to view an action which doesn\'t exsist within the SMF system. If this setting is empty then the "Forum Default/Home Action" will be shown for all invalid actions. Please remember that this MUST be an action, it can however be any action from the entire SMF forum system.';
+$helptxt['SiteIntegrationMod_site_home_action'] = 'This setting allows you to change the default action/page which is shown when you view "index.php", without any specified action. If the "Invalid Action Error Action" field is empty or invalid then this action will also be shown if the action is invalid. Please note that if you use this setting, you will still be able to access the default forums index, from the \'forum\' action at "index.php?action=forums". Please also remember that this MUST be an action, it can however be any action from the entire SMF forum system.';
+$helptxt['SiteIntegrationMod_include_folder_extensions'] = 'This setting allows you to specify a list of file extensions separated by commas \',\'. These extensions will be used when searching for files/actions in the "File/Action Include Folders", by default \'.php\' will always be used, this setting gives you the option of adding extra extensions to search for. Please remember to use a dot \'.\' at the beginning of each extension, otherwise they will be ignored by the system. Also remember, that if you add extensions such as .tar.gz, the archieves will be still included, but the displayed text will be gibberish.';
+$helptxt['SiteIntegrationMod_language_prefix'] = 'This setting allows you to specify a string prefix which will be used to try to find a language string for each included action/file title. When an include\'s title is needed, SMF will try to find a variable in the format $txt[(language_prefix).(title)], if none is found for the current language then the title itself will be used. This is only useful if you have multiple languages in your forum.<br /><br /> Please not that if you set the value of this setting to nothing, then the mod will not bother searching for ANY text language strings. Also note that when searching, the mod will look through your "Site-Wide Language Integration Files" for the correct language string.';
+$helptxt['SiteIntegrationMod_show_whosonline'] = 'This setting allows you to chose whether or not this action will be shown in the whosonline list, if checked the "action" in the list for a user viewing an included file/action will be the same as the titles text, otherwise it will be shown as generic message like \'Unknown Action\'. Remember that only users with permissions to actually view the page will be able to see other users viewing it, otherwise they will get the generic message as well.';
+//	**End Site Integration Mod HelpText**
+]]></add>
+		</operation>
+	</file>
+</modification>
