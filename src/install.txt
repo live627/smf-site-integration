@@ -1,0 +1,90 @@
+[center][b][color=blue][size=5]Site Integration Mod Version 1.4 by LHVWB[/size][/color][/b][/center][color=red][size=5]Overview:[/size][/color]
+
+This mod helps webmasters to integrate their websites with SMF. It achieves this by allowing admin to include their '.php' files as actions into the SMF system, thus allowing their site to share the theme, template, login system and etc. of SMF.
+
+The Mod works by looking in a series of specific folders (defined by the admin) for '.php' files to include as actions, each included file will then be accessable within the SMF theme from 'index.php?action=(filename without trailing '.php').
+
+I made this mod because I think that there needs to be an easier way to integrate small php scripts and HTML pages into SMF without using the normal [url=http://docs.simplemachines.org/index.php?topic=400]SSI.php functions[/url].
+
+[color=red][size=5]Features Explained:[/size][/color]
+[b][u]
+Settings are found in the admin panel:[/u][/b]
+[b]For SMF 1.1.5:[/b] "Features and Options" section-> "Site Integration" tab.
+[b]For SMF 2 Beta: [/b]"Configuration" dropdown menu -> 'Modifications' -> 'Site Integration' Tab.[list]
+[li][b]Includes .php files as actions:[/b] This is the main function of the Mod, in order for this to work you need to add some folders to the "File/Action Include Folders" setting, so that the system can include files. [/li]
+[li][b]Manage Included Files/Actions:[/b] This functionality is provided by a list of included files/actions within the settings area, it allows you to set custom permissions for your included files/actions and also give them a title which will be shown in the browser window. You can also choose to show the action in the WhosOnline list for the forums.
+[/li]
+[li][b]Change Home/Default Action:[/b] This functionality is provided by the "Forum Default/Home Action" setting, it allows you to change the home page of your forums. Please note that your Board Index will still be accessible "index.php?action=forum". If you leave the setting blank then your normal Board Index will be your home page/action.
+[/li]
+[li][b]Show Special Action for invalid actions:[/b] This functionality is provided by the "Invalid Action Error Action" setting, it allows you to show a specific action every time an invalid action is passed by the user. If you don't set this then it will just show the home/default page.[/li]
+[li][b]Language Includes ([/b][i][color=blue]only important if you are using more than one language[/color][/i][b]):[/b] The language include settings are very useful if you want to add multiple languages to your included files/actions, they allow you to specify folders, in which the Mod will search for a '(current action).(current language).php' file, as well as any specified "Site-Wide Language Integration Files" that it can find. These files will then be included before your included file/action, so that you can use a language system similar to the SMF language system where you define the same text variable (eg $text['welcome']='Welcome to my Website!') in multiple language files and then access it later (eg echo($text['welcome'])).[/li]
+[/list]Further explanation of feature functionality can be found by clicking on the [?] help button next to each setting.
+
+[color=red][size=5]Demo Sites:[/size][/color]
+
+[b]SMF 1.1.5:[/b] [url=http://www.verbtest.com/smfdemo/index.php]http://www.verbtest.com/smfdemo/index.php[/url]
+[b]SMF 2 Beta:[/b] [url=http://www.verbtest.com/smf2demo/index.php]http://www.verbtest.com/smf2demo/index.php[/url]
+
+[color=red][size=5]Important Information:[/size][/color]
+
+This Mod should work for all templates, however for custom templates you may wish to edit the 'template_SiteIntegration()' function in the 'SiteIntegration.template.php' template file.
+
+You have to set the permissions for all the includes actions/files that you want normal users or guests to see, by default every included action/file can only be seen by the admin of your website.
+
+You can access any of the global variables from SMF, but your file is being included from a function, meaning that they are not automatically there. You will have to include any global variables that you need, below is an example of how to do that.
+
+[code]
+global $var;
+Or for multiples:  global $var1, $var2, etc.;
+[/code]
+
+You can use any of the functions which are defined by SMF from within the php code on your pages, by using the require_once() function to include them. However because the file is included from within the template, you cannot change any major settings from within your files.
+
+Also be aware that when you view your page it will be treated as if it is at the root of your SMF directory, because of the integration. This will effect any relative locations which you are trying to use.
+
+The index pages from your folders will [u][i][b]never[/b][/i][/u] be turned into actions, I would suggest that you copy an index.php page from one of the other SMF folders to protect your folders, so that people can't see a list of your files.
+
+Finally note that you should always include the code below in all of your '.php ' files, so that if users try to view those files they will be redirected to the file's smf action. You only need to change the value of $smfurl to the web address of your SMF's index.php for it to work, ie. ("[url=http://www.smfsite.com/index.php]http://www.smfsite.com/index.php[/url]").
+
+[code]
+<?php
+$smfurl = '{web adress of your SMFs index.php}';
+if (!defined('SMF'))
+  header('Location: '.$smfurl.'?action='.substr(basename($_SERVER['SCRIPT_FILENAME']), 0, strpos(basename($_SERVER['SCRIPT_FILENAME']), '.')));
+?>
+[/code]
+
+[color=red][size=5]Version Changes:[/size][/color]
+
+[b]v1.41[/b]
+Updated for SMF 1.1.6 and SMF 2 Beta 4.0.
+
+[b]v1.4 Changes.[/b]
+A minor bugfix, there was a HTML error in the template file, also fixed displaying of Mod version.
+Removed 'official' support for SMF 1.1.4 and SMF 2 Beta 3.0, although the mod should still work for them.
+Added settings to change home/default and error actions.
+Added option to display the title of an included action in the whosonline list.
+Added the use of custom file extensions.
+Added a language string prefix for included titles, and implemented checking for a language string for them.
+
+[b]v1.3.1 Changes.[/b]
+A minor bugfix, two of the settings had similar names so this created an annoying bug.
+Updated version 1.3 so that it supports SMF 1.1.5 and 1.1.4.
+
+[b]v1.3 Changes.[/b]
+Added permissions and title management of included files/actions.
+Fixed up all errors which were occurring with PHP4.
+Removed semi-completed language translations.
+
+v1.12. Changes:
+Added support for PHP 4.
+Small Bugfixes.
+
+v1.11. Changes:
+Re-Added support for SMF 1.1.4.
+
+v1.1. Changes:
+Support for multiple file/action include folders added.
+Support for SMF 1.1.4 Removed.
+Menu System Split into a separate Mod (Under Construction).
+Language Support for English-utf8 added.

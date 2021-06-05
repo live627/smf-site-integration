@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>LHVWB:SMF_intergration_MOD</id>
+	<version>1.41</version>
+	<file name="$boarddir/index.php">
+		<operation>
+			<search position="replace"><![CDATA[
+		// Fall through to the board index then...
+		require_once($sourcedir . '/BoardIndex.php');
+		return 'BoardIndex';]]></search>
+			<add><![CDATA[
+		//	Try to fall back to the error action.
+		if (
+			!empty($modSettings['siteintegration_site_error_page'])
+			&& isset($actionArray[$modSettings['siteintegration_site_error_page']])
+			&& allowedTo('siteintegration:' . $modSettings['siteintegration_site_error_page'])
+			&& empty($load_home)
+		)
+		{
+			require_once($sourcedir . '/LoadFile.php');
+			return 'LandingPage';
+		}
+		// Try to load the default site action.
+		elseif (
+			!empty($modSettings['siteintegration_site_home_action'])
+			&& isset($actionArray[$modSettings['siteintegration_site_home_action']])
+			&& allowedTo('siteintegration:' . $modSettings['siteintegration_site_home_action'])
+		)
+		{
+			require_once($sourcedir . '/LoadFile.php');
+			return 'LandingPage';
+		}
+		// No? Fall through to the board index then...
+		else
+		{
+			require_once($sourcedir . '/BoardIndex.php');
+			return 'BoardIndex';
+		}]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+		// Action and board are both empty... BoardIndex!
+		if (empty($board) && empty($topic))
+		{
+			require_once($sourcedir . '/BoardIndex.php');
+			return 'BoardIndex';
+		}
+]]></search>
+			<add><![CDATA[
+		// Action and board are both empty... BoardIndex!
+		if (empty($board) && empty($topic))
+		{
+			// Allow the system to continue...
+			// This must happen because there may be a custom default/home action, in the as yet undefined array.
+			$load_home = true;
+		}
+]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Admin.php">
+		<operation>
+			<search position="replace"><![CDATA[loadLanguage(implode('+', $language_files));
+
+	// All the files we need to include.
+	$include_files = array(]]></search>
+			<add><![CDATA[$language_files[] = 'SiteIntegration';
+	loadLanguage(implode('+', $language_files));
+
+	// All the files we need to include.
+	$include_files = array(
+		'ManageSiteIntegration',]]></add>
+		</operation>
+			<search position="before"><![CDATA[// Mod authors if you want to be "real freaking good" then add any setting pages for your mod BELOW this line!]]></search>
+			<add><![CDATA[//	Site Integration Settings search stuff, LHVWB === "real freaking good" && "1337".
+		array('ModifySiteIntegrationSettings', 'area=modsettings;sa=siteintegration'),
+		]]></add>
+		</operation>
+	</file>
+</modification>
