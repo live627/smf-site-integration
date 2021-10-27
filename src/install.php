@@ -2,7 +2,7 @@
 
 /**
  * @package   Site Integration mod
- * @version   2.0.0
+ * @version   
  * @author    John Rayes <live627@gmail.com>
  * @copyright Copyright (c) 2021, John Rayes
  * @license   http://opensource.org/licenses/MIT MIT
