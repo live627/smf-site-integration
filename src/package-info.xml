@@ -4,7 +4,7 @@
 	<name>Site Integration Mod</name>
 	<id>LHVWB:SMF_intergration_MOD</id>
 	<type>modification</type>
-	<version>2.0.0</version>
+	<version></version>
 	<install for="2.0 - 2.0.99">
 		<code type="inline"><![CDATA[<?php
 			define('REQUIRED_PHP_VERSION', '7.0.0');
