@@ -12,7 +12,7 @@ declare(strict_types = 1);
 
 function siteintegration_actions(array &$action_array)
 {
-	global $boarddir, $context, $modSettings;
+	global $boarddir, $context, $modSettings, $txt;
 
 	$action_array['forum'] = ['BoardIndex.php', 'BoardIndex'];
 	$context['siteintegration_actions'] = [];
@@ -52,11 +52,6 @@ function siteintegration_actions(array &$action_array)
 			}
 		}
 	}
-}
-
-function siteintegration_load_theme()
-{
-	global $context, $modSettings, $scripturl, $txt;
 
 	if ($context['current_action'] == 'who')
 	{
@@ -75,6 +70,11 @@ function siteintegration_load_theme()
 				$allowedActions[$action] = ['siteintegration:' . $action];
 			}
 	}
+}
+
+function siteintegration_load_theme()
+{
+	global $context;
 
 	if ($context['current_action'] == 'helpadmin')
 		loadLanguage('SiteIntegration');
@@ -86,8 +86,6 @@ function siteintegration_whos_online(array $actions)
 
 	if (isset($actions['action'], $txt['whoallow_' . $actions['action']]) && allowedTo('siteintegration:' . $actions['action']))
 		return $txt['whoallow_' . $actions['action']];
-
-	return $txt['who_hidden'];
 }
 
 function siteintegration_admin_areas(array &$admin_areas)
