@@ -4,7 +4,7 @@
 
 Package name | SMF version | Minimmum PHP version
 --- | --- | ---
-Site Integration Mod 2.0.0 | SMF 2.0.x | PHP 7.0
+Site Integration Mod 2.0.1 | SMF 2.0.x | PHP 7.0
 Site Integration Mod 1.4.1 | SMF 1.1.x, 2.0.x | PHP 4.3 – PHP 5.4
 
 [View changelog](https://github.com/live627/smf-site-integration/blob/master/CHANGELOG.md)
