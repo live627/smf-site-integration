@@ -84,7 +84,7 @@ function siteintegration_whos_online(array $actions)
 {
 	global $txt;
 
-	if (isset($txt['whoallow_' . $actions['action']]) && allowedTo('siteintegration:' . $actions['action']))
+	if (isset($actions['action'], $txt['whoallow_' . $actions['action']]) && allowedTo('siteintegration:' . $actions['action']))
 		return $txt['whoallow_' . $actions['action']];
 
 	return $txt['who_hidden'];
