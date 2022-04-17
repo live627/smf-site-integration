@@ -1,5 +1,13 @@
 # Changelog
 
+### [2.0.1](https://www.github.com/live627/smf-site-integration/compare/v2.0.0...v2.0.1) (2022-04-17)
+
+
+### Bug Fixes
+
+* Many undefined errors in the spider log ([be2f117](https://www.github.com/live627/smf-site-integration/commit/be2f117f9db7193978d1740227e6b6782d991125))
+* Naming mixup on Who's Online page ([e450669](https://www.github.com/live627/smf-site-integration/commit/e450669212acabebf859c4379447331dc4f5f02c))
+
 ## [2.0.0](https://www.github.com/live627/smf-site-integration/compare/v1.4.1...v2.0.0) (2021-10-27)
 
 
