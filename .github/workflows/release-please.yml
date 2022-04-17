@@ -12,15 +12,26 @@ jobs:
       FORCE_COLOR: 1
       MOD_NAME: site-integration
     steps:
-      - uses: GoogleCloudPlatform/release-please-action@v3
+      - uses: GoogleCloudPlatform/release-please-action@v2
         id: release
         with:
           release-type: php
-          draft: true
           package-name: ${{ env.MOD_NAME }}
+      - uses: actions/github-script@v3
+        id: vars
+        with:
+          script: |
+            const response = await github.pulls.get({
+              pull_number: ${{ steps.release.outputs.pr }},
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            core.info("\u001B[32m✔\u001B[39mBranch: \u001B[1;32m" + response.data.head.ref);
+            core.setOutput("branch", response.data.head.ref);
+        if: ${{ steps.release.outputs.pr && !steps.release.outputs.release_created }}
       - uses: actions/checkout@v2
         with:
-          ref: ${{ steps.release.outputs.pr.headBranchName }}
+          ref: ${{ steps.vars.outputs.branch }}
         if: ${{ steps.release.outputs.pr && !steps.release.outputs.release_created }}
       - if: ${{ steps.release.outputs.pr && !steps.release.outputs.release_created }}
         run: |
